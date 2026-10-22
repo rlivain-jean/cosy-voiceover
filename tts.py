@@ -5,7 +5,9 @@ Script format:
 {"lang": "it-IT", "voice": "Charon", "rate": 1.0,
  "lines": {"A01": "text", "A02": {"text": "...", "rate": 1.08, "voice": "Puck"}}}
 
-A line is only re-synthesised when its text/voice/rate changed (audio/<stem>/manifest.json).
+Brand names are spoken via pronunciation.json (e.g. Cosy2Go -> "Cosy to Go"); the script text
+(used for subtitles) keeps the written name.
+A line is only re-synthesised when its spoken text/voice/rate changed (audio/<stem>/manifest.json).
 The key comes from the env var GOOGLE_TTS_KEY (GitHub Actions secret) and is never written anywhere.
 """
 import base64, glob, hashlib, json, os, sys, urllib.request, urllib.error
@@ -13,6 +15,14 @@ import base64, glob, hashlib, json, os, sys, urllib.request, urllib.error
 KEY = os.environ.get('GOOGLE_TTS_KEY', '').strip()
 if not KEY:
     sys.exit('GOOGLE_TTS_KEY is not set')
+
+PRON = json.load(open('pronunciation.json', encoding='utf-8')) if os.path.exists('pronunciation.json') else {}
+
+def spoken(lang, text):
+    table = dict(PRON.get('*', {})); table.update(PRON.get(lang.split('-')[0], {}))
+    for k in sorted(table, key=len, reverse=True):
+        text = text.replace(k, table[k])
+    return text
 
 def synth(lang, voice, text, rate):
     body = {'input': {'text': text},
@@ -36,7 +46,8 @@ for path in files:
     man = json.load(open(mpath)) if os.path.exists(mpath) else {}
     for lid, line in s['lines'].items():
         if isinstance(line, str): line = {'text': line}
-        text = line['text']; voice = line.get('voice', s.get('voice', 'Charon')); rate = line.get('rate', s.get('rate', 1.0))
+        text = spoken(s['lang'], line.get('say', line['text']))
+        voice = line.get('voice', s.get('voice', 'Charon')); rate = line.get('rate', s.get('rate', 1.0))
         h = hashlib.sha1(json.dumps([s['lang'], voice, rate, text], ensure_ascii=False).encode()).hexdigest()[:12]
         wav = os.path.join(out, f'{lid}.wav')
         if man.get(lid) == h and os.path.exists(wav):

@@ -2,7 +2,7 @@ name: voiceover
 on:
   push:
     branches: [main]
-    paths: ['scripts/**', 'tts.py']
+    paths: ['scripts/**', 'tts.py', 'pronunciation.json']
   workflow_dispatch:
 permissions:
   contents: write

@@ -1,0 +1,5 @@
+{
+ "_note": "Spoken spellings for TTS only. Keys are matched case-sensitively in the script text; per-language entries win over '*'.",
+ "*":  {"Cosy2Go": "Cosy to Go", "Cosy2Rise": "Cosy to Rise", "Cosy4More": "Cosy for More"},
+ "de": {"Cosy2Go": "Cosy tu Go", "Cosy2Rise": "Cosy tu Rais", "Cosy4More": "Cosy for Moor"}
+}
